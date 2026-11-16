@@ -8,9 +8,9 @@ The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. On
 
 - **The row** (46px tall, the sidebar's `brand` block, full sidebar width): the theme's `chrome` background, 13.5px text, 14px padding on the left and 10px on the right, 4px gaps. On macOS, outside fullscreen, the left padding is 76px to clear the traffic lights.
 - **Logo**: Herdr's own `frame/welcome/herdr.png`, 20px square with 5px corners, at the left, 8px before the switch. The "Herdr" wordmark is gone; the switch has its place. With `LOGO = false` the logo is left out and the switch starts the row.
-- **Espresso button** (26px tall, 6px corner radius, 7px left and 9px right padding, semibold): an 18px switch icon, a 7px gap, then the label.
-  - Off: icon `toggle-left.svg` (knob on the left), label "Drink Espresso", both in the theme's `dim` color, no fill. Hover: the theme's `hover` fill and `muted` text.
-  - On: icon `toggle-right.svg` (knob on the right), label "Caffeinated", both `#f0883e`, on a `#f0883e29` fill. Hover: `#f0883e40`.
+- **Espresso button** (26px tall, 6px corner radius, 7px left and 9px right padding, semibold): an 18px espresso cup icon (`espresso.svg`), a 7px gap, then the label. The icon is the same in both states; color and label show the state.
+  - Off: label "Drink Espresso", icon and label in the theme's `dim` color, no fill. Hover: the theme's `hover` fill and `muted` text.
+  - On: label "Caffeinated", icon and label `#f0883e`, on a `#f0883e29` fill. Hover: `#f0883e40`.
 - **Search** and **sidebar toggle**: two 26px square buttons with 15px icons in the `muted` color, on the right. Hover: the `hover` fill and `foreground` color.
 - **On the narrow sidebar rail** (sidebar under 160px wide): the logo, the Espresso button and search are hidden and the left padding is 6px. Off macOS the sidebar toggle remains; on macOS the row is empty, because the traffic lights fill it.
 
@@ -35,7 +35,7 @@ The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. On
 - `gpui-kit`: `View`, `div`, `image`, `svg`; `gpui-base`: `h_flex`. `cx.timer.every(30000, ...)` for the re-read, `cx.spawn` around the `exec`, `cx.notify()` after it.
 - `herdr` functions: `exec` (`sh -c <script> sh <pid file> <on|off|nothing>`), `appHome` (where the pid file goes), `theme`, `window` (`platform`, `fullscreen`), `layout` (the `sidebar` node's `size.px`), `shared` / `setShared` (`sidebar.width`, `sidebar.collapsed`), `run` (`mod.open {name: "picker"}`, `layout.resize {id: "sidebar", px}`).
 - The script, one for reading and flipping: read the pid from the file; find `espresso` on the `PATH`, else `~/.local/bin/espresso`, and print `missing` and stop if neither can be run; "alive" means `ps -p <pid> -o comm=` ends in `espresso`; `on` starts the command above with `nohup` and `</dev/null >/dev/null 2>&1 &`, writes `$!`, and waits up to half a second for the process to show as alive, unless one is alive already; `off` kills it if alive and removes the file; it ends by printing `on` or `off`.
-- Art: `toggle-left.svg`, `toggle-right.svg`, `search.svg`, `sidebar.svg`: 24px stroke icons, 1.5 stroke width, `currentColor`.
+- Art: `espresso.svg` (a small cup with a handle, on a saucer, two lines of steam above), `search.svg`, `sidebar.svg`: 24px stroke icons, 1.5 stroke width, `currentColor`.
 
 **Watch out**
 
@@ -49,7 +49,7 @@ The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. On
 - With no terminal espresso skips its offer to install the lid-closed helper and prints a note to stderr. That is expected.
 - `herdr-app check` runs the mod's `exec` for real. With no third argument the script only reads state, so a check never flips it.
 - Themes name no orange, so the on color is fixed at `#f0883e` and does not change with the theme.
-- Icon paths are from the herdr-app home (`mods/espresso-switch/toggle-left.svg`); rename the folder and `DIR` must change too.
+- Icon paths are from the herdr-app home (`mods/espresso-switch/espresso.svg`); rename the folder and `DIR` must change too.
 - Whether the sidebar is the rail goes by its width (under 160px), not by a flag, because dragging its edge narrows it too. `sidebar.collapsed` is still set for mods that read it.
 - Shipped layouts and mods are rewritten on every start: put the block in your own layout and keep this mod in its own folder.
 - Built against Herdr 0.1.15 and espresso 1.0.0 on macOS.

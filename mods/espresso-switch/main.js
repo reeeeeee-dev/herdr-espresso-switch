@@ -98,7 +98,7 @@ export default class EspressoSwitch extends View {
       .tooltip(TOOLTIP[this.state])
       .on_mouse_down("left", (_e, cx) => cx.stop_propagation())
       .on_click((_e, cx) => this.espresso(cx, on ? "off" : "on"))
-      .child(svg(`${DIR}/toggle-${on ? "right" : "left"}.svg`).size(18).flex_none())
+      .child(svg(`${DIR}/espresso.svg`).size(18).flex_none())
       .child(on ? "Caffeinated" : "Drink Espresso");
   }
 
