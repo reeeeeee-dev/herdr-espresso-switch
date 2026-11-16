@@ -4,7 +4,7 @@ An Espresso switch for [Herdr](https://github.com/herdrdev/herdr-app): keep your
 
 ![Espresso switch in the Herdr sidebar](preview.png)
 
-It sits beside the Herdr logo at the top left of the sidebar and reads **Drink Espresso**. Click it and the Mac stops going to sleep; the button turns orange and reads **Caffeinated**. Click again and the Mac sleeps as usual. Search and the sidebar toggle stay where they were.
+It sits beside the Herdr logo at the top left of the sidebar and reads **Drink Espresso**. Click it and the Mac and its screen stop going to sleep; the button turns orange and reads **Caffeinated**. Click again and the Mac sleeps as usual. Search and the sidebar toggle stay where they were.
 
 ## Requirements
 
@@ -32,13 +32,13 @@ Ask your agent to add `github.com/reeeeeee-dev/herdr-espresso-switch` to Herdr, 
 
 ## What it touches
 
-- **Programs:** the mod runs `sh`, which starts or stops `espresso -- /bin/sh -c '<wait for espresso to end>'`. espresso keeps the Mac from idle sleep for as long as that command runs.
+- **Programs:** the mod runs `sh`, which starts or stops `espresso -- /bin/sh -c 'exec /usr/bin/caffeinate -d -w "$PPID"'`. espresso keeps the Mac from idle sleep for as long as that command runs, and the command is macOS's own `caffeinate`, which keeps the display awake until espresso ends.
 - **Files:** one file outside the mod's folder, `~/.config/herdr-app/espresso-switch.pid`, naming the process it started.
 - **Network:** none.
 
 ## Good to know
 
-- espresso prevents system sleep, not display sleep: the screen can still dim, turn off and lock while the Mac stays awake.
+- The screen stays on too: espresso itself prevents system sleep only, so the switch pairs it with `caffeinate -d`. While it is on the screen does not dim, turn off or lock from idling.
 - The `espresso` process is detached, so the Mac stays awake after you close or quit Herdr. Switch it off before you leave, or run `kill $(cat ~/.config/herdr-app/espresso-switch.pid)`.
 - The button only tracks the `espresso` it started. One started elsewhere does not turn the button on and is never killed by it.
 - State is re-read every 30 seconds, so an `espresso` ended some other way shows as off within that time.

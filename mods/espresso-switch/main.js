@@ -25,8 +25,9 @@ const ORANGE_FILL_HOVER = "#f0883e40";
 // It prints the resulting state: "on", "off", or "missing" when espresso is not installed.
 // The pid file names the espresso this switch started; any other espresso on the machine
 // is left alone and does not turn the switch on.
-// espresso stays awake for as long as a command runs, so the switch gives it one that
-// lasts until espresso itself is gone: killing espresso is all "off" has to do.
+// espresso stays awake for as long as a command runs, and holds off system sleep only. The
+// command it is given is caffeinate -d, which keeps the display awake too and waits (-w)
+// for espresso itself to go: killing espresso is all "off" has to do.
 const SCRIPT = `
 f="$1"; p=$(cat "$f" 2>/dev/null)
 e=$(command -v espresso || echo "$HOME/.local/bin/espresso")
@@ -34,7 +35,7 @@ e=$(command -v espresso || echo "$HOME/.local/bin/espresso")
 alive() { [ -n "$p" ] && case "$(ps -p "$p" -o comm= 2>/dev/null)" in *espresso) true ;; *) false ;; esac; }
 case "$2" in
   on) alive || {
-    nohup "$e" -- /bin/sh -c 'while kill -0 "$PPID" 2>/dev/null; do sleep 5; done' </dev/null >/dev/null 2>&1 & p=$!; echo "$p" > "$f"
+    nohup "$e" -- /bin/sh -c 'exec /usr/bin/caffeinate -d -w "$PPID"' </dev/null >/dev/null 2>&1 & p=$!; echo "$p" > "$f"
     for i in 1 2 3 4 5; do alive && break; sleep 0.1; done
   } ;;
   off) alive && kill "$p"; rm -f "$f"; p= ;;
@@ -43,7 +44,7 @@ alive && echo on || echo off
 `;
 
 const TOOLTIP = {
-  on: "Espresso is on: this Mac stays awake",
+  on: "Espresso is on: this Mac and its screen stay awake",
   off: "Espresso is off: this Mac sleeps as usual",
   missing: "espresso is not installed: see github.com/Hanyang-Li/espresso",
 };

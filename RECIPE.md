@@ -1,6 +1,6 @@
 # Espresso Switch
 
-The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. One click keeps the Mac awake through [espresso](https://github.com/Hanyang-Li/espresso) and the button turns orange and reads "Caffeinated"; another click lets it sleep again and the button reads "Drink Espresso". Search and the sidebar toggle sit to its right as before.
+The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. One click keeps the Mac and its screen awake through [espresso](https://github.com/Hanyang-Li/espresso) and the button turns orange and reads "Caffeinated"; another click lets it sleep again and the button reads "Drink Espresso". Search and the sidebar toggle sit to its right as before.
 
 ![Espresso Switch](preview.png)
 
@@ -16,13 +16,13 @@ The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. On
 
 **How it behaves**
 
-- Clicking the Espresso button flips it. On starts `espresso -- /bin/sh -c 'while kill -0 "$PPID" 2>/dev/null; do sleep 5; done'` detached and writes its pid to `<herdr-app home>/espresso-switch.pid`; off kills that `espresso` and removes the file. The button redraws from what the script reports, not from the click.
-- espresso keeps the Mac awake for as long as the command it was given runs. The command given here only waits for espresso itself to go away, so killing `espresso` ends both within five seconds and nothing is left behind.
-- The tooltip reads "Espresso is on: this Mac stays awake", "Espresso is off: this Mac sleeps as usual", or, when the `espresso` program is not found, "espresso is not installed: see github.com/Hanyang-Li/espresso".
+- Clicking the Espresso button flips it. On starts `espresso -- /bin/sh -c 'exec /usr/bin/caffeinate -d -w "$PPID"'` detached and writes its pid to `<herdr-app home>/espresso-switch.pid`; off kills that `espresso` and removes the file. The button redraws from what the script reports, not from the click.
+- espresso keeps the Mac awake for as long as the command it was given runs. The command given here is `caffeinate -d`, which keeps the display awake and waits (`-w`) for espresso itself to go away, so killing `espresso` ends both and nothing is left behind.
+- The tooltip reads "Espresso is on: this Mac and its screen stay awake", "Espresso is off: this Mac sleeps as usual", or, when the `espresso` program is not found, "espresso is not installed: see github.com/Hanyang-Li/espresso".
 - State is read when the mod loads and every 30 seconds after, so an `espresso` that ended elsewhere shows as off.
 - Only the process named in the pid file counts. An `espresso` started some other way does not turn the button on and is not killed by it. A stale pid (the process is gone, or the pid now belongs to another program) counts as off.
 - The process outlives Herdr: quit Herdr with the button on and the Mac stays awake; the button is still on at the next start.
-- espresso holds an idle system sleep assertion only. The display can still sleep and lock. With espresso's helper installed (`sudo espresso daemon install`) the same session also keeps the Mac awake with the lid closed; without it, closing the lid sleeps the Mac.
+- espresso holds an idle system sleep assertion only; the `caffeinate -d` it runs holds the idle display sleep assertion, so the screen does not dim, turn off or lock from idling. With espresso's helper installed (`sudo espresso daemon install`) the same session also keeps the Mac awake with the lid closed; without it, closing the lid sleeps the Mac.
 - Search opens the `picker` mod. The sidebar toggle narrows the sidebar to the rail (76px on macOS, 44px elsewhere), remembering its width, or restores it (268px if none was remembered).
 - Clicks on the three buttons do not start a window drag; the rest of the row does.
 - Agent status plays no part in this mod.
@@ -41,7 +41,7 @@ The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. On
 
 - Apple Silicon macOS only: espresso ships no other build.
 - espresso's timer mode (`-t`) needs a real terminal and fails when detached. Use the command mode.
-- Killing only `espresso` orphans an ordinary child command such as `sleep`. That is why the child here watches `$PPID` and ends by itself.
+- Killing only `espresso` orphans an ordinary child command such as `sleep`. That is why the child here is `caffeinate -w "$PPID"`, which ends by itself when espresso does. The `exec` matters: without it the shell stays between the two and `$PPID` is still espresso, but one more process is left to clean up.
 - Herdr's `exec` may not have `~/.local/bin` on its `PATH`, which is where espresso's installer puts it. Fall back to that path.
 - Start the process with `nohup` and all three streams redirected, or `exec` waits for it and the button never updates.
 - Right after it starts, the pid can still name the shell that is about to become `espresso`. Checking once reports off for a session that is on; retry briefly.
@@ -57,8 +57,8 @@ The top row of Herdr's sidebar with an Espresso switch beside the Herdr logo. On
 **Done when**
 
 - `herdr-app check mods/espresso-switch` passes and `herdr-app status` shows no errors.
-- With the button off, `espresso-switch.pid` is absent and the button reads "Drink Espresso" in the dim color. Clicking it makes the button orange and "Caffeinated", `ps -p $(cat ~/.config/herdr-app/espresso-switch.pid) -o comm=` ends in `espresso`, and `pmset -g assertions` lists "espresso session".
-- Clicking again kills that process, removes the file, and within five seconds no child of it is left running.
+- With the button off, `espresso-switch.pid` is absent and the button reads "Drink Espresso" in the dim color. Clicking it makes the button orange and "Caffeinated", `ps -p $(cat ~/.config/herdr-app/espresso-switch.pid) -o comm=` ends in `espresso`, and `pmset -g assertions` lists "espresso session" and a `caffeinate` holding `PreventUserIdleDisplaySleep`.
+- Clicking again kills that process, removes the file, and no child of it is left running: the `caffeinate` and its display assertion are gone.
 - Killing the process by hand turns the button off within 30 seconds.
 - An `espresso` started in a terminal leaves the button off, and switching the button on and off leaves that process running.
 - With `espresso` moved away the button stays off and the tooltip says it is not installed.
